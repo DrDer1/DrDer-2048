@@ -28,12 +28,16 @@
 
     <!-- Main App Container -->
     <div id="app" class="app-container">
+        <!-- Header Bar - Always Visible -->
+        <header class="app-header">
+            <h1 class="header-title">DrDer 2048</h1>
+        </header>
+
         <!-- القائمة الرئيسية -->
         <div id="main-menu" class="screen active">
             <div class="menu-content">
                 <div class="logo-container">
                     <div class="logo-icon">🎮</div>
-                    <h1 class="game-title">DrDer 2048</h1>
                     <p class="game-subtitle">تحدي الذكاء والتركيز</p>
                 </div>
                 <div class="menu-buttons">
@@ -44,6 +48,10 @@
                     <button id="btn-resume" class="menu-btn secondary-btn" style="display: none;">
                         <span class="btn-icon">↩</span>
                         <span>متابعة اللعب</span>
+                    </button>
+                    <button id="btn-levels" class="menu-btn secondary-btn">
+                        <span class="btn-icon">🏆</span>
+                        <span>المستويات</span>
                     </button>
                     <button id="btn-settings-menu" class="menu-btn secondary-btn">
                         <span class="btn-icon">⚙️</span>
@@ -58,12 +66,51 @@
             </div>
         </div>
 
+        <!-- شاشة المستويات -->
+        <div id="levels-screen" class="screen">
+            <div class="screen-header">
+                <button id="btn-back-from-levels" class="back-btn">←</button>
+                <h2>المستويات</h2>
+            </div>
+            <div class="levels-grid">
+                <div class="level-card" data-level="beginner">
+                    <div class="level-badge">🌱</div>
+                    <h3>مبتدئ</h3>
+                    <p class="level-target">الهدف: 128</p>
+                    <button class="level-btn" data-level="beginner">العب</button>
+                </div>
+                <div class="level-card" data-level="normal">
+                    <div class="level-badge">⭐</div>
+                    <h3>عادي</h3>
+                    <p class="level-target">الهدف: 512</p>
+                    <button class="level-btn" data-level="normal">العب</button>
+                </div>
+                <div class="level-card" data-level="advanced">
+                    <div class="level-badge">🔥</div>
+                    <h3>متقدم</h3>
+                    <p class="level-target">الهدف: 2048</p>
+                    <button class="level-btn" data-level="advanced">العب</button>
+                </div>
+                <div class="level-card" data-level="expert">
+                    <div class="level-badge">💎</div>
+                    <h3>خبير</h3>
+                    <p class="level-target">الهدف: 4096</p>
+                    <button class="level-btn" data-level="expert">العب</button>
+                </div>
+                <div class="level-card" data-level="free">
+                    <div class="level-badge">♾️</div>
+                    <h3>حر</h3>
+                    <p class="level-target">بلا نهاية</p>
+                    <button class="level-btn" data-level="free">العب</button>
+                </div>
+            </div>
+        </div>
+
         <!-- شاشة اللعب -->
         <div id="game-screen" class="screen">
             <div class="game-header">
                 <button id="btn-menu-back" class="back-btn">☰</button>
-                <div class="game-title-small">DrDer 2048</div>
-                <div class="target-badge">2048</div>
+                <div class="target-badge" id="target-badge">2048</div>
             </div>
             <div class="stats-bar">
                 <div class="stat-item">
@@ -126,7 +173,7 @@
             <div class="modal-content">
                 <div class="modal-icon">🎉</div>
                 <h2 class="modal-title">تهانينا!</h2>
-                <p class="modal-subtitle">لقد وصلت إلى 2048</p>
+                <p class="modal-subtitle" id="win-message">لقد وصلت إلى الهدف!</p>
                 <div class="modal-stats">
                     <div class="modal-stat">
                         <span>النتيجة</span>
