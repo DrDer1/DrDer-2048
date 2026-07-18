@@ -3,17 +3,17 @@
    ========================================== */
 
 // ============ DOM Elements ============
-const screens = {
-    mainMenu: document.getElementById('main-menu'),
-    game: document.getElementById('game-screen'),
-    settings: document.getElementById('settings-screen')
-};
-
 const elements = {
     splashScreen: document.getElementById('splash-screen'),
+    mainMenu: document.getElementById('main-menu'),
+    gameScreen: document.getElementById('game-screen'),
+    levelsScreen: document.getElementById('levels-screen'),
+    settingsScreen: document.getElementById('settings-screen'),
     btnNewGame: document.getElementById('btn-new-game'),
     btnResume: document.getElementById('btn-resume'),
+    btnLevels: document.getElementById('btn-levels'),
     btnSettingsMenu: document.getElementById('btn-settings-menu'),
+    btnBackFromLevels: document.getElementById('btn-back-from-levels'),
     btnMenuBack: document.getElementById('btn-menu-back'),
     btnBackFromSettings: document.getElementById('btn-back-from-settings'),
     btnInstall: document.getElementById('btn-install'),
@@ -23,11 +23,13 @@ const elements = {
     timeDisplay: document.getElementById('time-display'),
     tileContainer: document.getElementById('tile-container'),
     gameBoard: document.getElementById('game-board'),
+    targetBadge: document.getElementById('target-badge'),
     animationsToggle: document.getElementById('animations-toggle'),
     btnResetGame: document.getElementById('btn-reset-game'),
     winModal: document.getElementById('win-modal'),
     loseModal: document.getElementById('lose-modal'),
-    exitConfirmModal: document.getElementById('exit-confirm-modal')
+    exitConfirmModal: document.getElementById('exit-confirm-modal'),
+    winMessage: document.getElementById('win-message')
 };
 
 // ============ Game State ============
@@ -41,7 +43,18 @@ const gameState = {
     won: false,
     keepPlaying: false,
     timerInterval: null,
-    animationsEnabled: true
+    animationsEnabled: true,
+    level: 'advanced',
+    target: 2048
+};
+
+// Level configurations
+const levelConfig = {
+    'beginner': { target: 128, label: '128' },
+    'normal': { target: 512, label: '512' },
+    'advanced': { target: 2048, label: '2048' },
+    'expert': { target: 4096, label: '4096' },
+    'free': { target: Infinity, label: '∞' }
 };
 
 // ============ Storage ============
@@ -55,13 +68,13 @@ function saveGame() {
         moves: gameState.moves,
         seconds: gameState.seconds,
         won: gameState.won,
-        keepPlaying: gameState.keepPlaying
+        keepPlaying: gameState.keepPlaying,
+        level: gameState.level,
+        target: gameState.target
     };
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    } catch (e) {
-        // Storage full or unavailable
-    }
+    } catch (e) {}
 }
 
 function loadGame() {
@@ -77,9 +90,7 @@ function loadGame() {
 function deleteSave() {
     try {
         localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {
-        // Ignore
-    }
+    } catch (e) {}
 }
 
 function hasSavedGame() {
@@ -158,7 +169,6 @@ function processLine(line) {
     // Remove zeros
     let tiles = line.filter(val => val !== 0);
     let scoreGained = 0;
-    let mergedPositions = [];
     
     // Merge adjacent equal tiles (each tile merges once per move)
     for (let i = 0; i < tiles.length - 1; i++) {
@@ -166,7 +176,6 @@ function processLine(line) {
             tiles[i] *= 2;
             scoreGained += tiles[i];
             tiles.splice(i + 1, 1);
-            mergedPositions.push(i);
         }
     }
     
@@ -256,15 +265,21 @@ function renderBoard(grid) {
                 const tile = document.createElement('div');
                 tile.className = getTileClass(grid[r][c]);
                 tile.textContent = grid[r][c];
+                
+                const xPos = padding + c * (cellSize + gap);
+                const yPos = padding + r * (cellSize + gap);
+                
                 tile.style.width = cellSize + 'px';
                 tile.style.height = cellSize + 'px';
-                tile.style.left = (padding + c * (cellSize + gap)) + 'px';
-                tile.style.top = (padding + r * (cellSize + gap)) + 'px';
-                
-                // Font size proportional to cell size
-                const fontSize = cellSize * 0.38;
-                tile.style.fontSize = fontSize + 'px';
+                tile.style.left = xPos + 'px';
+                tile.style.top = yPos + 'px';
                 tile.style.lineHeight = cellSize + 'px';
+                
+                // Font size proportional to cell size and number of digits
+                const numDigits = grid[r][c].toString().length;
+                const baseFontSize = cellSize * 0.42;
+                const adjustedFontSize = numDigits > 3 ? baseFontSize * (4 / numDigits) : baseFontSize;
+                tile.style.fontSize = adjustedFontSize + 'px';
                 
                 container.appendChild(tile);
             }
@@ -274,6 +289,9 @@ function renderBoard(grid) {
 
 function getTileClass(value) {
     if (value <= 2048) {
+        return `tile tile-${value}`;
+    }
+    if (value <= 8192) {
         return `tile tile-${value}`;
     }
     return 'tile tile-super';
@@ -307,29 +325,27 @@ function stopTimer() {
 }
 
 // ============ Screen Management ============
-function showScreen(screenId) {
-    Object.values(screens).forEach(s => s.classList.remove('active'));
-    const screen = document.getElementById(screenId);
-    if (screen) {
-        screen.classList.add('active');
+function showScreen(screenElement) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    if (screenElement) {
+        screenElement.classList.add('active');
     }
-    // Hide all modals
     document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
 }
 
-function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.add('active');
+function showModal(modalElement) {
+    if (modalElement) modalElement.classList.add('active');
 }
 
-function hideModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
+function hideModal(modalElement) {
+    if (modalElement) modalElement.classList.remove('active');
 }
 
 // ============ Game Flow ============
-function initNewGame() {
+function initNewGame(level) {
     stopTimer();
+    gameState.level = level || 'advanced';
+    gameState.target = levelConfig[gameState.level].target;
     gameState.grid = createEmptyGrid();
     gameState.score = 0;
     gameState.moves = 0;
@@ -343,16 +359,19 @@ function initNewGame() {
     addRandomTile(gameState.grid);
     addRandomTile(gameState.grid);
     
+    // Update target badge
+    elements.targetBadge.textContent = levelConfig[gameState.level].label;
+    
     updateStats();
     renderBoard(gameState.grid);
     startTimer();
-    showScreen('game-screen');
+    showScreen(elements.gameScreen);
 }
 
 function resumeGame() {
     const saved = loadGame();
     if (!saved) {
-        initNewGame();
+        initNewGame('advanced');
         return;
     }
     
@@ -364,12 +383,16 @@ function resumeGame() {
     gameState.seconds = saved.seconds;
     gameState.won = saved.won || false;
     gameState.keepPlaying = saved.keepPlaying || false;
+    gameState.level = saved.level || 'advanced';
+    gameState.target = saved.target || 2048;
     gameState.gameOver = false;
+    
+    elements.targetBadge.textContent = levelConfig[gameState.level].label;
     
     updateStats();
     renderBoard(gameState.grid);
     startTimer();
-    showScreen('game-screen');
+    showScreen(elements.gameScreen);
 }
 
 function getBestScore() {
@@ -384,9 +407,7 @@ function getBestScore() {
 function setBestScore(score) {
     try {
         localStorage.setItem('drder-best-score', score.toString());
-    } catch (e) {
-        // Ignore
-    }
+    } catch (e) {}
 }
 
 function handleMove(direction) {
@@ -412,10 +433,10 @@ function handleMove(direction) {
     updateStats();
     renderBoard(gameState.grid);
     
-    // Check for 2048
-    if (!gameState.won && !gameState.keepPlaying) {
+    // Check win condition
+    if (!gameState.won && !gameState.keepPlaying && gameState.target !== Infinity) {
         const maxTile = getMaxTile(gameState.grid);
-        if (maxTile >= 2048) {
+        if (maxTile >= gameState.target) {
             gameState.won = true;
             stopTimer();
             showWinModal();
@@ -423,7 +444,7 @@ function handleMove(direction) {
         }
     }
     
-    // Check for game over
+    // Check game over
     if (!canMove(gameState.grid)) {
         gameState.gameOver = true;
         stopTimer();
@@ -441,7 +462,8 @@ function showWinModal() {
     document.getElementById('win-time').textContent = elements.timeDisplay.textContent;
     document.getElementById('win-moves').textContent = gameState.moves;
     document.getElementById('win-best').textContent = gameState.bestScore;
-    showModal('win-modal');
+    elements.winMessage.textContent = 'لقد وصلت إلى ' + gameState.target + '!';
+    showModal(elements.winModal);
     deleteSave();
 }
 
@@ -450,12 +472,12 @@ function showLoseModal() {
     document.getElementById('lose-best').textContent = gameState.bestScore;
     document.getElementById('lose-time').textContent = elements.timeDisplay.textContent;
     document.getElementById('lose-moves').textContent = gameState.moves;
-    showModal('lose-modal');
+    showModal(elements.loseModal);
 }
 
 function continuePlaying() {
     gameState.keepPlaying = true;
-    hideModal('win-modal');
+    hideModal(elements.winModal);
     startTimer();
     saveGame();
 }
@@ -464,7 +486,7 @@ function exitToMenu() {
     stopTimer();
     saveGame();
     hideAllModals();
-    showScreen('main-menu');
+    showScreen(elements.mainMenu);
     updateResumeButton();
 }
 
@@ -482,7 +504,6 @@ let touchStartY = 0;
 const SWIPE_THRESHOLD = 30;
 
 function handleTouchStart(e) {
-    if (gameState.gameOver) return;
     touchStartX = e.touches[0].clientX;
     touchStartY = e.touches[0].clientY;
 }
@@ -502,17 +523,15 @@ function handleTouchEnd(e) {
     
     if (absDx < SWIPE_THRESHOLD && absDy < SWIPE_THRESHOLD) return;
     
-    let direction;
     if (absDx > absDy) {
-        direction = dx > 0 ? 'right' : 'left';
+        handleMove(dx > 0 ? 'right' : 'left');
     } else {
-        direction = dy > 0 ? 'down' : 'up';
+        handleMove(dy > 0 ? 'down' : 'up');
     }
-    
-    handleMove(direction);
 }
 
 function handleKeyDown(e) {
+    if (!elements.gameScreen.classList.contains('active')) return;
     if (gameState.gameOver) return;
     if (gameState.won && !gameState.keepPlaying) return;
     
@@ -565,7 +584,6 @@ function initPWA() {
     window.addEventListener('appinstalled', () => {
         isStandalone = true;
         deferredPrompt = null;
-        updateInstallButton();
         elements.btnInstall.style.display = 'none';
     });
     
@@ -603,9 +621,7 @@ function initSplashScreen() {
 // ============ Orientation Lock ============
 function lockOrientation() {
     if (screen.orientation && screen.orientation.lock) {
-        screen.orientation.lock('portrait-primary').catch(() => {
-            // Silently fail - browser may not support locking
-        });
+        screen.orientation.lock('portrait-primary').catch(() => {});
     }
 }
 
@@ -613,35 +629,52 @@ function lockOrientation() {
 function initEventListeners() {
     // Main menu
     elements.btnNewGame.addEventListener('click', () => {
-        initNewGame();
+        initNewGame(gameState.level);
     });
     
     elements.btnResume.addEventListener('click', () => {
         resumeGame();
     });
     
+    elements.btnLevels.addEventListener('click', () => {
+        showScreen(elements.levelsScreen);
+    });
+    
     elements.btnSettingsMenu.addEventListener('click', () => {
-        showScreen('settings-screen');
+        showScreen(elements.settingsScreen);
+    });
+    
+    // Levels screen
+    elements.btnBackFromLevels.addEventListener('click', () => {
+        showScreen(elements.mainMenu);
+        updateResumeButton();
+    });
+    
+    document.querySelectorAll('.level-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const level = e.target.getAttribute('data-level');
+            initNewGame(level);
+        });
     });
     
     // Game screen
     elements.btnMenuBack.addEventListener('click', () => {
-        showModal('exit-confirm-modal');
+        showModal(elements.exitConfirmModal);
     });
     
     // Exit confirmation
     document.getElementById('btn-exit-cancel').addEventListener('click', () => {
-        hideModal('exit-confirm-modal');
+        hideModal(elements.exitConfirmModal);
     });
     
     document.getElementById('btn-exit-confirm').addEventListener('click', () => {
-        hideModal('exit-confirm-modal');
+        hideModal(elements.exitConfirmModal);
         exitToMenu();
     });
     
     // Settings
     elements.btnBackFromSettings.addEventListener('click', () => {
-        showScreen('main-menu');
+        showScreen(elements.mainMenu);
         updateResumeButton();
     });
     
@@ -664,19 +697,19 @@ function initEventListeners() {
     });
     
     document.getElementById('btn-win-new-game').addEventListener('click', () => {
-        hideModal('win-modal');
-        initNewGame();
+        hideModal(elements.winModal);
+        initNewGame(gameState.level);
     });
     
     // Lose modal
     document.getElementById('btn-try-again').addEventListener('click', () => {
-        hideModal('lose-modal');
-        initNewGame();
+        hideModal(elements.loseModal);
+        initNewGame(gameState.level);
     });
     
     document.getElementById('btn-back-to-menu').addEventListener('click', () => {
-        hideModal('lose-modal');
-        showScreen('main-menu');
+        hideModal(elements.loseModal);
+        showScreen(elements.mainMenu);
         updateResumeButton();
     });
     
@@ -693,38 +726,32 @@ function initEventListeners() {
     elements.gameBoard.addEventListener('touchstart', handleTouchStart, { passive: true });
     elements.gameBoard.addEventListener('touchend', handleTouchEnd, { passive: true });
     
-    // Also listen on the whole game screen for swipes
-    const gameScreen = document.getElementById('game-screen');
-    gameScreen.addEventListener('touchstart', (e) => {
-        if (e.target === gameScreen || e.target.closest('.swipe-hint')) {
+    // Also listen on the game screen for swipes
+    elements.gameScreen.addEventListener('touchstart', (e) => {
+        if (e.target === elements.gameScreen || e.target.closest('.swipe-hint')) {
             handleTouchStart(e);
         }
     }, { passive: true });
-    gameScreen.addEventListener('touchend', (e) => {
-        if (e.target === gameScreen || e.target.closest('.swipe-hint')) {
+    
+    elements.gameScreen.addEventListener('touchend', (e) => {
+        if (e.target === elements.gameScreen || e.target.closest('.swipe-hint')) {
             handleTouchEnd(e);
         }
     }, { passive: true });
     
     // Keyboard events
-    document.addEventListener('keydown', (e) => {
-        if (screens.game.classList.contains('active')) {
-            handleKeyDown(e);
-        }
-    });
+    document.addEventListener('keydown', handleKeyDown);
     
     // Handle window resize
     window.addEventListener('resize', () => {
-        if (screens.game.classList.contains('active')) {
+        if (elements.gameScreen.classList.contains('active')) {
             renderBoard(gameState.grid);
         }
     });
     
     // Prevent scrolling on game screen
-    document.addEventListener('touchmove', (e) => {
-        if (screens.game.classList.contains('active')) {
-            e.preventDefault();
-        }
+    elements.gameScreen.addEventListener('touchmove', (e) => {
+        e.preventDefault();
     }, { passive: false });
     
     // Orientation change
@@ -752,14 +779,8 @@ function init() {
     initSplashScreen();
     lockOrientation();
     
-    // Show main menu
-    showScreen('main-menu');
+    showScreen(elements.mainMenu);
     updateResumeButton();
-    
-    // Hide splash if not standalone
-    if (!isStandalone) {
-        elements.splashScreen.style.display = 'none';
-    }
 }
 
 // Register Service Worker
@@ -767,14 +788,11 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js', { scope: './' })
             .then(reg => {
-                console.log('Service Worker registered');
-                
                 reg.addEventListener('updatefound', () => {
                     const newWorker = reg.installing;
                     if (newWorker) {
                         newWorker.addEventListener('statechange', () => {
                             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // New content available
                                 newWorker.postMessage({ action: 'skipWaiting' });
                                 window.location.reload();
                             }
@@ -782,16 +800,12 @@ if ('serviceWorker' in navigator) {
                     }
                 });
             })
-            .catch(err => {
-                console.log('Service Worker registration failed:', err);
-            });
+            .catch(err => {});
     });
     
-    // Handle controller change
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         window.location.reload();
     });
 }
 
-// Start the app
 document.addEventListener('DOMContentLoaded', init);
