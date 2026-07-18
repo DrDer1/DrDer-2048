@@ -7,18 +7,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="DrDer 2048">
-    <meta name="description" content="DrDer 2048 - لعبة ألغاز احترافية بتصميم داكن فاخر">
+    <meta name="description" content="DrDer 2048 - لعبة ألغاز احترافية">
     <title>DrDer 2048</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="192.png">
-    <link rel="apple-touch-icon" href="192.png">
+    <link rel="stylesheet" href="./style.css">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="./192.png">
+    <link rel="apple-touch-icon" href="./192.png">
 </head>
 <body>
     <!-- Splash Screen -->
     <div id="splash-screen" class="splash-screen">
         <div class="splash-content">
-            <img src="512.png" alt="DrDer 2048" class="splash-icon" width="120" height="120">
+            <img src="./512.png" alt="DrDer 2048" class="splash-icon" width="120" height="120" onerror="this.style.display='none'">
             <h1 class="splash-title">DrDer 2048</h1>
             <div class="splash-loader">
                 <div class="splash-loader-bar"></div>
@@ -26,104 +26,61 @@
         </div>
     </div>
 
+    <!-- Main App Container -->
     <div id="app" class="app-container">
-        <!-- شاشة البداية -->
+        <!-- القائمة الرئيسية -->
         <div id="main-menu" class="screen active">
             <div class="menu-content">
                 <div class="logo-container">
                     <div class="logo-icon">🎮</div>
                     <h1 class="game-title">DrDer 2048</h1>
-                    <p class="game-subtitle">تحدي العقل والذكاء</p>
+                    <p class="game-subtitle">تحدي الذكاء والتركيز</p>
                 </div>
                 <div class="menu-buttons">
-                    <button id="btn-start" class="menu-btn primary-btn">
+                    <button id="btn-new-game" class="menu-btn primary-btn">
                         <span class="btn-icon">▶</span>
-                        <span class="btn-text" data-lang="start-game">ابدأ اللعب</span>
+                        <span>ابدأ لعبة جديدة</span>
                     </button>
-                    <button id="btn-levels" class="menu-btn secondary-btn">
-                        <span class="btn-icon">🏆</span>
-                        <span class="btn-text" data-lang="levels">المستويات</span>
+                    <button id="btn-resume" class="menu-btn secondary-btn" style="display: none;">
+                        <span class="btn-icon">↩</span>
+                        <span>متابعة اللعب</span>
                     </button>
-                    <button id="btn-stats" class="menu-btn secondary-btn">
-                        <span class="btn-icon">📊</span>
-                        <span class="btn-text" data-lang="statistics">الإحصائيات</span>
-                    </button>
-                    <button id="btn-settings" class="menu-btn secondary-btn">
+                    <button id="btn-settings-menu" class="menu-btn secondary-btn">
                         <span class="btn-icon">⚙️</span>
-                        <span class="btn-text" data-lang="settings">الإعدادات</span>
+                        <span>الإعدادات</span>
                     </button>
                 </div>
                 <button id="btn-install" class="install-btn" style="display: none;">
                     <span class="btn-icon">📲</span>
-                    <span data-lang="install-app">تثبيت التطبيق</span>
+                    <span>تثبيت التطبيق</span>
                 </button>
                 <div class="version-text">v2.0.0</div>
-            </div>
-        </div>
-
-        <!-- شاشة المستويات -->
-        <div id="levels-screen" class="screen">
-            <div class="screen-header">
-                <button id="btn-back-levels" class="back-btn">←</button>
-                <h2 data-lang="levels">المستويات</h2>
-            </div>
-            <div class="levels-grid">
-                <div class="level-card" data-level="beginner">
-                    <div class="level-badge">🌱</div>
-                    <h3 data-lang="beginner">مبتدئ</h3>
-                    <p class="level-target">128</p>
-                    <button class="level-btn" data-level="beginner" data-lang="play">العب</button>
-                </div>
-                <div class="level-card" data-level="normal">
-                    <div class="level-badge">⭐</div>
-                    <h3 data-lang="normal">عادي</h3>
-                    <p class="level-target">512</p>
-                    <button class="level-btn" data-level="normal" data-lang="play">العب</button>
-                </div>
-                <div class="level-card" data-level="advanced">
-                    <div class="level-badge">🔥</div>
-                    <h3 data-lang="advanced">متقدم</h3>
-                    <p class="level-target">2048</p>
-                    <button class="level-btn" data-level="advanced" data-lang="play">العب</button>
-                </div>
-                <div class="level-card" data-level="expert">
-                    <div class="level-badge">💎</div>
-                    <h3 data-lang="expert">خبير</h3>
-                    <p class="level-target">4096</p>
-                    <button class="level-btn" data-level="expert" data-lang="play">العب</button>
-                </div>
-                <div class="level-card" data-level="free">
-                    <div class="level-badge">♾️</div>
-                    <h3 data-lang="free-play">حر</h3>
-                    <p class="level-target">∞</p>
-                    <button class="level-btn" data-level="free" data-lang="play">العب</button>
-                </div>
             </div>
         </div>
 
         <!-- شاشة اللعب -->
         <div id="game-screen" class="screen">
             <div class="game-header">
-                <button id="btn-menu" class="back-btn">☰</button>
+                <button id="btn-menu-back" class="back-btn">☰</button>
                 <div class="game-title-small">DrDer 2048</div>
-                <div id="level-indicator" class="level-indicator"></div>
+                <div class="target-badge">2048</div>
             </div>
             <div class="stats-bar">
                 <div class="stat-item">
-                    <span class="stat-label" data-lang="score">النتيجة</span>
-                    <span id="score" class="stat-value">0</span>
+                    <span class="stat-label">النتيجة</span>
+                    <span id="current-score" class="stat-value">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label" data-lang="best">الأفضل</span>
+                    <span class="stat-label">الأفضل</span>
                     <span id="best-score" class="stat-value">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label" data-lang="moves">الحركات</span>
-                    <span id="moves" class="stat-value">0</span>
+                    <span class="stat-label">الحركات</span>
+                    <span id="moves-count" class="stat-value">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label" data-lang="time">الوقت</span>
-                    <span id="time" class="stat-value">00:00</span>
+                    <span class="stat-label">الوقت</span>
+                    <span id="time-display" class="stat-value">00:00</span>
                 </div>
             </div>
             <div class="board-wrapper">
@@ -137,84 +94,21 @@
                     <div class="tile-container" id="tile-container"></div>
                 </div>
             </div>
-            <div class="game-controls-mobile">
-                <div class="swipe-area" id="swipe-area">
-                    <span data-lang="swipe-hint">اسحب للتحريك</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- شاشة الإحصائيات -->
-        <div id="stats-screen" class="screen">
-            <div class="screen-header">
-                <button id="btn-back-stats" class="back-btn">←</button>
-                <h2 data-lang="statistics">الإحصائيات</h2>
-            </div>
-            <div class="stats-content">
-                <div class="stats-grid">
-                    <div class="stats-card">
-                        <span class="stats-card-label" data-lang="games-played">الألعاب</span>
-                        <span id="stat-games" class="stats-card-value">0</span>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-card-label" data-lang="wins">الفوز</span>
-                        <span id="stat-wins" class="stats-card-value">0</span>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-card-label" data-lang="losses">الخسارة</span>
-                        <span id="stat-losses" class="stats-card-value">0</span>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-card-label" data-lang="best-score">أفضل نتيجة</span>
-                        <span id="stat-best-score" class="stats-card-value">0</span>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-card-label" data-lang="highest-tile">أعلى رقم</span>
-                        <span id="stat-highest-tile" class="stats-card-value">0</span>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-card-label" data-lang="total-time">إجمالي الوقت</span>
-                        <span id="stat-total-time" class="stats-card-value">00:00</span>
-                    </div>
-                    <div class="stats-card">
-                        <span class="stats-card-label" data-lang="total-moves">إجمالي الحركات</span>
-                        <span id="stat-total-moves" class="stats-card-value">0</span>
-                    </div>
-                </div>
-                <div class="achievements-section">
-                    <h3 data-lang="achievements">الإنجازات</h3>
-                    <div id="achievements-list" class="achievements-list"></div>
-                </div>
+            <div class="swipe-hint">
+                <span>اسحب للتحريك | الأسهم في الكمبيوتر</span>
             </div>
         </div>
 
         <!-- شاشة الإعدادات -->
         <div id="settings-screen" class="screen">
             <div class="screen-header">
-                <button id="btn-back-settings" class="back-btn">←</button>
-                <h2 data-lang="settings">الإعدادات</h2>
+                <button id="btn-back-from-settings" class="back-btn">←</button>
+                <h2>الإعدادات</h2>
             </div>
             <div class="settings-content">
                 <div class="settings-group">
                     <div class="setting-item">
-                        <span class="setting-label" data-lang="language">اللغة</span>
-                        <select id="lang-select" class="setting-select">
-                            <option value="ar">العربية</option>
-                            <option value="en">English</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <span class="setting-label" data-lang="theme">الثيم</span>
-                        <select id="theme-select" class="setting-select">
-                            <option value="midnight">Midnight Black</option>
-                            <option value="deep-space">Deep Space</option>
-                            <option value="dark-purple">Dark Purple</option>
-                            <option value="ocean-night">Ocean Night</option>
-                            <option value="emerald-night">Emerald Night</option>
-                        </select>
-                    </div>
-                    <div class="setting-item">
-                        <span class="setting-label" data-lang="animations">الأنيميشن</span>
+                        <span class="setting-label">الأنيميشن</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="animations-toggle" checked>
                             <span class="toggle-slider"></span>
@@ -222,8 +116,7 @@
                     </div>
                 </div>
                 <div class="settings-actions">
-                    <button id="btn-reset-stats" class="danger-btn" data-lang="reset-stats">إعادة تعيين الإحصائيات</button>
-                    <button id="btn-reset-achievements" class="danger-btn" data-lang="reset-achievements">إعادة تعيين الإنجازات</button>
+                    <button id="btn-reset-game" class="danger-btn">حذف تقدم اللعبة المحفوظة</button>
                 </div>
             </div>
         </div>
@@ -232,29 +125,29 @@
         <div id="win-modal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-icon">🎉</div>
-                <h2 class="modal-title" data-lang="congratulations">تهانينا!</h2>
-                <p class="modal-subtitle" data-lang="you-reached">لقد وصلت إلى الهدف!</p>
+                <h2 class="modal-title">تهانينا!</h2>
+                <p class="modal-subtitle">لقد وصلت إلى 2048</p>
                 <div class="modal-stats">
                     <div class="modal-stat">
-                        <span data-lang="score">النتيجة</span>
+                        <span>النتيجة</span>
                         <span id="win-score">0</span>
                     </div>
                     <div class="modal-stat">
-                        <span data-lang="time">الوقت</span>
+                        <span>الوقت</span>
                         <span id="win-time">00:00</span>
                     </div>
                     <div class="modal-stat">
-                        <span data-lang="moves">الحركات</span>
+                        <span>الحركات</span>
                         <span id="win-moves">0</span>
                     </div>
                     <div class="modal-stat">
-                        <span data-lang="best">الأفضل</span>
+                        <span>الأفضل</span>
                         <span id="win-best">0</span>
                     </div>
                 </div>
                 <div class="modal-buttons">
-                    <button id="btn-continue" class="modal-btn primary-btn" data-lang="continue">استمرار</button>
-                    <button id="btn-win-new-game" class="modal-btn secondary-btn" data-lang="new-game">لعبة جديدة</button>
+                    <button id="btn-continue-playing" class="modal-btn primary-btn">استمرار</button>
+                    <button id="btn-win-new-game" class="modal-btn secondary-btn">لعبة جديدة</button>
                 </div>
             </div>
         </div>
@@ -263,46 +156,46 @@
         <div id="lose-modal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-icon">😔</div>
-                <h2 class="modal-title" data-lang="game-over">انتهت اللعبة</h2>
+                <h2 class="modal-title">انتهت اللعبة</h2>
                 <div class="modal-stats">
                     <div class="modal-stat">
-                        <span data-lang="score">النتيجة</span>
+                        <span>النتيجة</span>
                         <span id="lose-score">0</span>
                     </div>
                     <div class="modal-stat">
-                        <span data-lang="best">الأفضل</span>
+                        <span>الأفضل</span>
                         <span id="lose-best">0</span>
                     </div>
                     <div class="modal-stat">
-                        <span data-lang="time">الوقت</span>
+                        <span>الوقت</span>
                         <span id="lose-time">00:00</span>
                     </div>
                     <div class="modal-stat">
-                        <span data-lang="moves">الحركات</span>
+                        <span>الحركات</span>
                         <span id="lose-moves">0</span>
                     </div>
                 </div>
                 <div class="modal-buttons">
-                    <button id="btn-try-again" class="modal-btn primary-btn" data-lang="try-again">حاول مجدداً</button>
-                    <button id="btn-lose-menu" class="modal-btn secondary-btn" data-lang="main-menu">القائمة الرئيسية</button>
+                    <button id="btn-try-again" class="modal-btn primary-btn">حاول مجدداً</button>
+                    <button id="btn-back-to-menu" class="modal-btn secondary-btn">القائمة الرئيسية</button>
                 </div>
             </div>
         </div>
 
-        <!-- نافذة تأكيد -->
-        <div id="confirm-modal" class="modal-overlay">
+        <!-- نافذة تأكيد الخروج -->
+        <div id="exit-confirm-modal" class="modal-overlay">
             <div class="modal-content modal-small">
                 <div class="modal-icon">⚠️</div>
-                <h2 class="modal-title" data-lang="confirm">تأكيد</h2>
-                <p id="confirm-message" class="modal-subtitle"></p>
+                <h2 class="modal-title">تأكيد الخروج</h2>
+                <p class="modal-subtitle">هل تريد الخروج من اللعبة؟</p>
                 <div class="modal-buttons">
-                    <button id="btn-confirm-yes" class="modal-btn danger-btn" data-lang="yes">نعم</button>
-                    <button id="btn-confirm-no" class="modal-btn secondary-btn" data-lang="no">لا</button>
+                    <button id="btn-exit-cancel" class="modal-btn secondary-btn">إلغاء</button>
+                    <button id="btn-exit-confirm" class="modal-btn danger-btn">تأكيد الخروج</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="./app.js"></script>
 </body>
 </html>
