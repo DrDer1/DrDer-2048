@@ -47,7 +47,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request).then(cached => {
             if (cached) {
-                // Background refresh
                 fetch(event.request).then(response => {
                     if (response.ok) {
                         caches.open(CACHE_NAME).then(cache => {
@@ -71,7 +70,6 @@ self.addEventListener('fetch', (event) => {
                 
                 return response;
             }).catch(() => {
-                // Offline fallback for navigation
                 if (event.request.mode === 'navigate') {
                     return caches.match('./index.html');
                 }
