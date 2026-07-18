@@ -124,27 +124,23 @@ function addRandomTile(grid) {
     if (empty.length === 0) return false;
     
     const { r, c } = empty[Math.floor(Math.random() * empty.length)];
-    // 90% chance for 2, 10% chance for 4
     grid[r][c] = Math.random() < 0.9 ? 2 : 4;
     return true;
 }
 
 function canMove(grid) {
-    // Check for empty cells
     for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 4; c++) {
             if (grid[r][c] === 0) return true;
         }
     }
     
-    // Check for possible merges horizontally
     for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 3; c++) {
             if (grid[r][c] === grid[r][c + 1]) return true;
         }
     }
     
-    // Check for possible merges vertically
     for (let r = 0; r < 3; r++) {
         for (let c = 0; c < 4; c++) {
             if (grid[r][c] === grid[r + 1][c]) return true;
@@ -164,13 +160,10 @@ function getMaxTile(grid) {
     return max;
 }
 
-// Process a single line (row or column) for 2048 movement
 function processLine(line) {
-    // Remove zeros
     let tiles = line.filter(val => val !== 0);
     let scoreGained = 0;
     
-    // Merge adjacent equal tiles (each tile merges once per move)
     for (let i = 0; i < tiles.length - 1; i++) {
         if (tiles[i] === tiles[i + 1]) {
             tiles[i] *= 2;
@@ -179,7 +172,6 @@ function processLine(line) {
         }
     }
     
-    // Pad with zeros to length 4
     while (tiles.length < 4) {
         tiles.push(0);
     }
@@ -249,15 +241,32 @@ function moveGrid(grid, direction) {
 // ============ UI Rendering ============
 function renderBoard(grid) {
     const container = elements.tileContainer;
-    if (!container) return;
+    const board = elements.gameBoard;
+    if (!container || !board) return;
     
     container.innerHTML = '';
     
-    const boardRect = elements.gameBoard.getBoundingClientRect();
+    const boardWidth = board.clientWidth;
+    const boardHeight = board.clientHeight;
+    
+    if (boardWidth === 0 || boardHeight === 0) {
+        requestAnimationFrame(() => renderBoard(grid));
+        return;
+    }
+    
     const padding = 8;
     const gap = 8;
-    const availableSize = boardRect.width - padding * 2;
-    const cellSize = (availableSize - gap * 3) / 4;
+    const availableWidth = boardWidth - padding * 2;
+    const availableHeight = boardHeight - padding * 2;
+    const cellSize = Math.min(
+        (availableWidth - gap * 3) / 4,
+        (availableHeight - gap * 3) / 4
+    );
+    
+    if (cellSize <= 0) {
+        requestAnimationFrame(() => renderBoard(grid));
+        return;
+    }
     
     for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 4; c++) {
@@ -275,7 +284,6 @@ function renderBoard(grid) {
                 tile.style.top = yPos + 'px';
                 tile.style.lineHeight = cellSize + 'px';
                 
-                // Font size proportional to cell size and number of digits
                 const numDigits = grid[r][c].toString().length;
                 const baseFontSize = cellSize * 0.42;
                 const adjustedFontSize = numDigits > 3 ? baseFontSize * (4 / numDigits) : baseFontSize;
@@ -355,17 +363,20 @@ function initNewGame(level) {
     gameState.keepPlaying = false;
     gameState.bestScore = getBestScore();
     
-    // Add two random tiles
     addRandomTile(gameState.grid);
     addRandomTile(gameState.grid);
     
-    // Update target badge
     elements.targetBadge.textContent = levelConfig[gameState.level].label;
     
     updateStats();
-    renderBoard(gameState.grid);
-    startTimer();
     showScreen(elements.gameScreen);
+    
+    // Use requestAnimationFrame to ensure board is rendered with correct dimensions
+    requestAnimationFrame(() => {
+        renderBoard(gameState.grid);
+    });
+    
+    startTimer();
 }
 
 function resumeGame() {
@@ -390,9 +401,13 @@ function resumeGame() {
     elements.targetBadge.textContent = levelConfig[gameState.level].label;
     
     updateStats();
-    renderBoard(gameState.grid);
-    startTimer();
     showScreen(elements.gameScreen);
+    
+    requestAnimationFrame(() => {
+        renderBoard(gameState.grid);
+    });
+    
+    startTimer();
 }
 
 function getBestScore() {
@@ -427,13 +442,11 @@ function handleMove(direction) {
         setBestScore(gameState.bestScore);
     }
     
-    // Add new tile
     addRandomTile(gameState.grid);
     
     updateStats();
     renderBoard(gameState.grid);
     
-    // Check win condition
     if (!gameState.won && !gameState.keepPlaying && gameState.target !== Infinity) {
         const maxTile = getMaxTile(gameState.grid);
         if (maxTile >= gameState.target) {
@@ -444,7 +457,6 @@ function handleMove(direction) {
         }
     }
     
-    // Check game over
     if (!canMove(gameState.grid)) {
         gameState.gameOver = true;
         stopTimer();
@@ -453,7 +465,6 @@ function handleMove(direction) {
         return;
     }
     
-    // Save after each valid move
     saveGame();
 }
 
@@ -627,7 +638,6 @@ function lockOrientation() {
 
 // ============ Event Listeners ============
 function initEventListeners() {
-    // Main menu
     elements.btnNewGame.addEventListener('click', () => {
         initNewGame(gameState.level);
     });
@@ -644,7 +654,6 @@ function initEventListeners() {
         showScreen(elements.settingsScreen);
     });
     
-    // Levels screen
     elements.btnBackFromLevels.addEventListener('click', () => {
         showScreen(elements.mainMenu);
         updateResumeButton();
@@ -657,12 +666,10 @@ function initEventListeners() {
         });
     });
     
-    // Game screen
     elements.btnMenuBack.addEventListener('click', () => {
         showModal(elements.exitConfirmModal);
     });
     
-    // Exit confirmation
     document.getElementById('btn-exit-cancel').addEventListener('click', () => {
         hideModal(elements.exitConfirmModal);
     });
@@ -672,7 +679,6 @@ function initEventListeners() {
         exitToMenu();
     });
     
-    // Settings
     elements.btnBackFromSettings.addEventListener('click', () => {
         showScreen(elements.mainMenu);
         updateResumeButton();
@@ -691,7 +697,6 @@ function initEventListeners() {
         alert('تم حذف تقدم اللعبة المحفوظة');
     });
     
-    // Win modal
     document.getElementById('btn-continue-playing').addEventListener('click', () => {
         continuePlaying();
     });
@@ -701,7 +706,6 @@ function initEventListeners() {
         initNewGame(gameState.level);
     });
     
-    // Lose modal
     document.getElementById('btn-try-again').addEventListener('click', () => {
         hideModal(elements.loseModal);
         initNewGame(gameState.level);
@@ -713,7 +717,6 @@ function initEventListeners() {
         updateResumeButton();
     });
     
-    // Close modals on overlay click
     document.querySelectorAll('.modal-overlay').forEach(overlay => {
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) {
@@ -722,11 +725,9 @@ function initEventListeners() {
         });
     });
     
-    // Touch events for game board
     elements.gameBoard.addEventListener('touchstart', handleTouchStart, { passive: true });
     elements.gameBoard.addEventListener('touchend', handleTouchEnd, { passive: true });
     
-    // Also listen on the game screen for swipes
     elements.gameScreen.addEventListener('touchstart', (e) => {
         if (e.target === elements.gameScreen || e.target.closest('.swipe-hint')) {
             handleTouchStart(e);
@@ -739,22 +740,18 @@ function initEventListeners() {
         }
     }, { passive: true });
     
-    // Keyboard events
     document.addEventListener('keydown', handleKeyDown);
     
-    // Handle window resize
     window.addEventListener('resize', () => {
         if (elements.gameScreen.classList.contains('active')) {
             renderBoard(gameState.grid);
         }
     });
     
-    // Prevent scrolling on game screen
     elements.gameScreen.addEventListener('touchmove', (e) => {
         e.preventDefault();
     }, { passive: false });
     
-    // Orientation change
     window.addEventListener('orientationchange', () => {
         lockOrientation();
     });
@@ -762,7 +759,6 @@ function initEventListeners() {
 
 // ============ Initialization ============
 function init() {
-    // Load animations preference
     try {
         const savedAnim = localStorage.getItem('drder-animations');
         if (savedAnim !== null) {
@@ -783,7 +779,6 @@ function init() {
     updateResumeButton();
 }
 
-// Register Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js', { scope: './' })
